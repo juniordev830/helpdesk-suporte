@@ -12,8 +12,8 @@ Java 17 e Maven.
 
 ## Escopo da primeira versão
 
-- [ ] Abrir chamados
-- [ ] Atribuir responsável e prioridade
+- [x] Abrir chamados
+- [x] Atribuir responsável e prioridade
 - [ ] Acompanhar prazos e histórico
 
 ## Critérios para concluir a primeira versão
