@@ -1,41 +1,44 @@
 # Helpdesk Suporte
 
-Chamados de TI com prioridade, responsável e prazo de atendimento.
+Núcleo de atendimento em **Java 17 e Maven**, com abertura de chamados, atribuição, resolução, controle de prazos, fila de triagem e painel de indicadores em memória.
 
-## Estado atual
+## Funcionalidades implementadas
 
-MVP executável em branch de desenvolvimento, com testes automatizados. Chamados em memória com atribuição, status e verificação de prazo. Ainda não há API, interface ou persistência.
+- Abrir chamados com prioridade `BAIXA`, `MEDIA`, `ALTA` ou `CRITICA` e prazo de atendimento.
+- Atribuir responsável antes de resolver.
+- Consultar chamados vencidos sem incluir os resolvidos.
+- `filaAtendimento(hoje)`: lista imutável de chamados pendentes, primeiro os vencidos, depois por prioridade (crítica antes de alta, média e baixa), prazo crescente e ID.
+- `painel(hoje)`: contagem de chamados abertos, em atendimento, resolvidos e vencidos.
 
-## Tecnologias implementadas
+## Exemplo de uso
 
-Java 17 e Maven.
+```java
+var helpdesk = new HelpdeskService();
+var hoje = LocalDate.of(2026, 11, 3);
+var urgente = helpdesk.abrir("Serviço indisponível", Chamado.Prioridade.CRITICA, hoje);
+helpdesk.abrir("Trocar mouse", Chamado.Prioridade.BAIXA, hoje.plusDays(7));
 
-## Escopo da primeira versão
+System.out.println(helpdesk.filaAtendimento(hoje).get(0).id()); // ID do chamado urgente
+System.out.println(helpdesk.painel(hoje)); // Totais por status e vencimento
+helpdesk.atribuir(urgente.id(), "Analista");
+helpdesk.resolver(urgente.id());
+```
 
-- [x] Abrir chamados
-- [x] Atribuir responsável e prioridade
-- [ ] Acompanhar prazos e histórico
+Imports: `br.junior.helpdesk.*` e `java.time.LocalDate`.
 
-## Critérios para concluir a primeira versão
-
-- [ ] Implementar o fluxo principal com validação de entradas e tratamento de erros.
-- [ ] Documentar instalação, configuração e execução com comandos reproduzíveis.
-- [ ] Adicionar exemplos de uso e dados fictícios.
-- [ ] Verificar os casos principais e limites e registrar os resultados.
-
-## Desenvolvimento
-
-Execute na raiz do repositório:
+## Executar os testes
 
 ```bash
 mvn -B test
 ```
 
-O GitHub Actions executa a validação em pushes e pull requests. Este é um núcleo demonstrativo; as funcionalidades ainda marcadas como pendentes na lista acima continuam planejadas.
+O GitHub Actions valida o fluxo básico, a ordenação da fila, a exclusão de chamados resolvidos, a imutabilidade do resultado e os contadores do painel.
 
-## Privacidade e configuração
+## Limitações
 
-Usar dados fictícios nos exemplos e manter senhas, tokens, arquivos pessoais e credenciais fora do controle de versão.
+Biblioteca de domínio de demonstração: sem API, autenticação, persistência, histórico completo, envio de alertas ou sincronização entre usuários. Os dados desaparecem ao reiniciar. Os métodos públicos não oferecem garantia de concorrência entre múltiplas threads. O painel é um resumo da memória atual, não um monitoramento de SLA com métricas históricas.
+
+Use dados fictícios nos exemplos. Não versionar credenciais ou informações pessoais.
 
 ## Licença
 
