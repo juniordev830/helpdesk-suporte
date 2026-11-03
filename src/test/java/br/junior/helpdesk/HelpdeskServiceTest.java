@@ -18,7 +18,7 @@ class HelpdeskServiceTest {
         service.atribuir(chamado.id(), "Ana");
         service.resolver(chamado.id());
 
-        assertEquals(Chamado.Status.RESOLVIDO, service.listar().getFirst().status());
+        assertEquals(Chamado.Status.RESOLVIDO, service.listar().get(0).status());
         assertTrue(service.vencidos(LocalDate.of(2026, 11, 3)).isEmpty());
     }
 
