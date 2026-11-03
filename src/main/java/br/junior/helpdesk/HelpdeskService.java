@@ -33,6 +33,41 @@ public final class HelpdeskService {
         return Collections.unmodifiableList(chamados.stream().filter(c -> c.vencido(hoje)).toList());
     }
 
+    /** Immutable operational snapshot for the selected day. */
+    public record Painel(int abertos, int emAtendimento, int resolvidos, int vencidos) {}
+
+    public Painel painel(LocalDate hoje) {
+        java.util.Objects.requireNonNull(hoje, "Data obrigatória");
+        int abertos = 0, emAtendimento = 0, resolvidos = 0, vencidos = 0;
+        for (Chamado chamado : chamados) {
+            switch (chamado.status()) {
+                case ABERTO -> abertos++;
+                case EM_ATENDIMENTO -> emAtendimento++;
+                case RESOLVIDO -> resolvidos++;
+            }
+            if (chamado.vencido(hoje)) vencidos++;
+        }
+        return new Painel(abertos, emAtendimento, resolvidos, vencidos);
+    }
+
+    /**
+     * Open tickets are sorted by overdue status, priority, due date and ID.
+     * Priority is CRITICA > ALTA > MEDIA > BAIXA; resolved tickets are excluded.
+     * This is a queue view only: it does not assign or mutate tickets.
+     */
+    public List<Chamado> filaAtendimento(LocalDate hoje) {
+        java.util.Objects.requireNonNull(hoje, "Data obrigatória");
+        var ordenacao = java.util.Comparator
+                .comparing((Chamado c) -> !c.vencido(hoje))
+                .thenComparingInt(c -> -c.prioridade().ordinal())
+                .thenComparing(Chamado::prazo)
+                .thenComparingInt(Chamado::id);
+        return chamados.stream()
+                .filter(c -> c.status() != Chamado.Status.RESOLVIDO)
+                .sorted(ordenacao)
+                .toList();
+    }
+
     public List<Chamado> listar() {
         return Collections.unmodifiableList(chamados);
     }
