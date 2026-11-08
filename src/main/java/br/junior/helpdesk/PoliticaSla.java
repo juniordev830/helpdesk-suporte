@@ -26,7 +26,7 @@ public final class PoliticaSla {
             }
             copia.put(prioridade, quantidade);
         }
-        if (feriados.contains(null)) throw new IllegalArgumentException("Feriado nulo");
+        if (feriados.stream().anyMatch(Objects::isNull)) throw new IllegalArgumentException("Feriado nulo");
         this.dias = Map.copyOf(copia);
         this.feriados = java.util.Set.copyOf(feriados);
     }
