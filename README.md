@@ -1,42 +1,85 @@
 # Helpdesk Suporte
 
-Chamados de TI com prioridade, responsável e prazo de atendimento.
+Núcleo de gestão de chamados de TI em **Java 17**, com prioridades, prazos, responsáveis, auditoria, indicadores e relatórios. A expansão mantém a API original `HelpdeskService` e `Chamado` e adiciona uma camada operacional independente.
 
-## Estado atual
+## Funcionalidades
 
-MVP executável em branch de desenvolvimento, com testes automatizados. Chamados em memória com atribuição, status e verificação de prazo. Ainda não há API, interface ou persistência.
+- Abertura, atribuição e resolução de chamados com validação de entradas.
+- Prazos de SLA em dias úteis por prioridade, considerando fins de semana e feriados configuráveis.
+- Histórico imutável de eventos: abertura, atribuição, resolução, notas, etiquetas e categorias.
+- Busca por título e descrição; filtros por status, prioridade, responsável, categoria, etiqueta e vencimento.
+- Paginação limitada a 200 itens e ordenação por prioridade, prazo e identificador.
+- Indicadores de chamados abertos, em atendimento, resolvidos, vencidos, categorias e responsáveis.
+- Exportação CSV com neutralização de fórmulas de planilhas e parser CSV com limites de segurança.
+- Relatório Markdown de atendimento com escape de texto não confiável.
+- Testes automatizados de fluxos normais, entradas inválidas, limites, imutabilidade e relatórios.
 
-## Tecnologias implementadas
+## Requisitos e execução
 
-Java 17 e Maven.
-
-## Escopo da primeira versão
-
-- [x] Abrir chamados
-- [x] Atribuir responsável e prioridade
-- [ ] Acompanhar prazos e histórico
-
-## Critérios para concluir a primeira versão
-
-- [ ] Implementar o fluxo principal com validação de entradas e tratamento de erros.
-- [ ] Documentar instalação, configuração e execução com comandos reproduzíveis.
-- [ ] Adicionar exemplos de uso e dados fictícios.
-- [ ] Verificar os casos principais e limites e registrar os resultados.
-
-## Desenvolvimento
-
-Execute na raiz do repositório:
+Instale o JDK 17 ou superior e o Maven 3.9 ou superior.
 
 ```bash
 mvn -B test
 ```
 
-O GitHub Actions executa a validação em pushes e pull requests. Este é um núcleo demonstrativo; as funcionalidades ainda marcadas como pendentes na lista acima continuam planejadas.
+O workflow `.github/workflows/ci.yml` executa o mesmo comando nos pushes e nas Pull Requests.
 
-## Privacidade e configuração
+## Exemplo de uso
 
-Usar dados fictícios nos exemplos e manter senhas, tokens, arquivos pessoais e credenciais fora do controle de versão.
+```java
+import br.junior.helpdesk.*;
+import java.time.Clock;
+import java.time.LocalDate;
 
-## Licença
+var central = new CentralAtendimento(Clock.systemUTC(), PoliticaSla.padrao());
+var chamado = central.abrir(
+    "VPN indisponível",
+    Chamado.Prioridade.ALTA,
+    "Erro de conexão para equipe remota",
+    "Rede",
+    "Solicitante"
+);
+central.adicionarEtiqueta(chamado.chamado().id(), "vpn", "Analista");
+central.atribuir(chamado.chamado().id(), "Ana", "Coordenador");
+central.anotar(chamado.chamado().id(), "Ana", "Diagnóstico iniciado");
 
-Ainda não definida.
+var pendentes = central.pesquisar(
+    CentralAtendimento.Filtro.todos()
+        .comStatus(Chamado.Status.EM_ATENDIMENTO),
+    0,
+    20
+);
+System.out.println("Total: " + pendentes.total());
+System.out.println(central.exportarCsv());
+System.out.println(RelatorioHelpdesk.markdown(central, LocalDate.now()));
+```
+
+## Política padrão de SLA
+
+| Prioridade | Dias úteis até o vencimento |
+|---|---:|
+| CRITICA | 0 |
+| ALTA | 1 |
+| MEDIA | 3 |
+| BAIXA | 5 |
+
+O vencimento ocorre no fim da data calculada. Um chamado só é considerado vencido quando a data consultada é posterior ao prazo. Uma abertura em fim de semana é normalizada para o próximo dia útil.
+
+A política é imutável e pode ser personalizada com `comFeriado`, `semFeriado` e `comPrazo`.
+
+## Organização
+
+- `Chamado`: entidade original imutável e regras de ciclo de vida.
+- `HelpdeskService`: armazenamento original em memória.
+- `PoliticaSla`: calendário de dias úteis e vencimentos.
+- `RegistroEvento`: registro de auditoria imutável.
+- `CentralAtendimento`: operações, filtros, paginação e métricas.
+- `CsvChamados`: exportação segura e leitura validada.
+- `RelatorioHelpdesk`: relatório Markdown operacional.
+- `src/test/java`: testes JUnit 5 para regras de negócio e limites.
+
+## Limitações e próximos passos
+
+Esta implementação utiliza armazenamento **em memória**, sem banco de dados ou API HTTP. Reiniciar o processo elimina os chamados; o CSV serve como relatório, não como mecanismo de restauração. O parser valida o formato do CSV, mas não reconstrói objetos de domínio automaticamente. Não armazene informações sensíveis nas notas de exemplo.
+
+O objetivo da expansão é adicionar funcionalidades e testes úteis, sem inflar o código artificialmente. As alterações devem ser revisadas por PR, sem merge automático na `main`.
