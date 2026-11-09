@@ -35,6 +35,27 @@ public final class RelatorioHelpdesk {
         texto.append("\n## Responsáveis\n\n");
         if (metricas.porResponsavel().isEmpty()) texto.append("Nenhum responsável atribuído.\n");
         else grupos(texto, metricas.porResponsavel());
+        texto.append("\n## Próximos vencimentos (2 dias corridos)\n\n");
+        var proximos = central.proximosVencimentos(hoje, 2);
+        if (proximos.isEmpty()) {
+            texto.append("Nenhum chamado com vencimento iminente.\n");
+        } else {
+            texto.append("| ID | Título | Prazo | Prioridade | Responsável |\n")
+                    .append("|---:|---|---|---|---|\n");
+            for (var detalhe : proximos.stream().limit(200).toList()) {
+                var chamado = detalhe.chamado();
+                texto.append("| ").append(chamado.id()).append(" | ")
+                        .append(escaparMarkdown(chamado.titulo())).append(" | ")
+                        .append(chamado.prazo()).append(" | ")
+                        .append(chamado.prioridade()).append(" | ")
+                        .append(escaparMarkdown(chamado.responsavel() == null
+                                ? "Não atribuído" : chamado.responsavel())).append(" |\n");
+            }
+            if (proximos.size() > 200) {
+                texto.append("\nExibindo os primeiros 200 de ")
+                        .append(proximos.size()).append(" chamados próximos do vencimento.\n");
+            }
+        }
         texto.append("\n## Chamados vencidos\n\n");
         var vencidos = central.pesquisar(
                 CentralAtendimento.Filtro.todos().comVencidos(hoje), 0, 200).itens();
