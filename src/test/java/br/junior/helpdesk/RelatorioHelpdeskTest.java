@@ -64,6 +64,40 @@ class RelatorioHelpdeskTest {
     }
 
     @Test
+    void destacaChamadosComPrazoEmDoisDiasECamposEscapados() {
+        var central = novaCentral();
+        central.abrir("Vencido", Chamado.Prioridade.CRITICA,
+                "Chamado urgente", "Rede", "João");
+        central.abrir("VPN | <teste>", Chamado.Prioridade.ALTA,
+                "Verificar acesso", "Rede", "João");
+        central.abrir("Prazo distante", Chamado.Prioridade.BAIXA,
+                "Retorno futuro", "Rede", "João");
+
+        var texto = RelatorioHelpdesk.markdown(central, LocalDate.of(2026, 11, 7));
+        var inicio = texto.indexOf("## Próximos vencimentos");
+        var fim = texto.indexOf("## Chamados vencidos");
+        assertTrue(inicio >= 0 && fim > inicio);
+        var secao = texto.substring(inicio, fim);
+        assertTrue(secao.contains("VPN \\| &lt;teste&gt;"));
+        assertTrue(secao.contains("2026-11-09"));
+        assertTrue(secao.contains("Não atribuído"));
+        assertFalse(secao.contains("Prazo distante"));
+        assertFalse(secao.contains("Vencido"));
+        assertTrue(texto.substring(fim).contains("Vencido"));
+    }
+
+    @Test
+    void naoMostraChamadosResolvidosNosProximosVencimentos() {
+        var central = novaCentral();
+        var chamado = central.abrir("Atendimento", Chamado.Prioridade.ALTA,
+                "Análise", "Rede", "Ana");
+        central.atribuir(chamado.chamado().id(), "Ana", "Gerente");
+        central.resolver(chamado.chamado().id(), "Ana");
+        var texto = RelatorioHelpdesk.markdown(central, LocalDate.of(2026, 11, 7));
+        assertTrue(texto.contains("Nenhum chamado com vencimento iminente"));
+    }
+
+    @Test
     void rejeitaParametrosNulos() {
         assertThrows(NullPointerException.class, () ->
                 RelatorioHelpdesk.markdown(null, LocalDate.now()));
