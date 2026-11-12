@@ -87,3 +87,7 @@ O objetivo da expansão é adicionar funcionalidades e testes úteis, sem inflar
 ## Prazos próximos no relatório Markdown
 
 O relatório `RelatorioHelpdesk.markdown(central, hoje)` passou a incluir uma seção de **vencimentos nos próximos dois dias corridos**, além da lista de chamados que já estão vencidos. A visualização omite chamados resolvidos, ordena por prazo, escapa os títulos e nomes para impedir injeções de marcação e limita a exibição a 200 linhas, informando quando há mais registros. O cálculo de prazo continua seguindo a política de SLA em dias úteis; a janela de alerta é expressa em **dias corridos**. Novos testes verificam exclusão de chamados vencidos ou resolvidos e a formatação segura.
+
+## Documentação para manutenção
+
+O [guia de validação](docs/GUIA_DE_VALIDACAO.md) contém testes de regressão, pontos críticos e critérios para revisar a próxima alteração.
