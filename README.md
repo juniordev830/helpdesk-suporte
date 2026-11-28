@@ -1,5 +1,7 @@
 # Helpdesk Suporte
 
+**Navegação** · [Funcionalidades](#funcionalidades) · [Requisitos e execução](#requisitos-e-execução) · [Exemplo de uso](#exemplo-de-uso) · [Código e estudo](docs/ENGENHARIA_REVERSA.md)
+
 Núcleo de gestão de chamados de TI em **Java 17**, com prioridades, prazos, responsáveis, auditoria, indicadores e relatórios. A expansão mantém a API original `HelpdeskService` e `Chamado` e adiciona uma camada operacional independente.
 
 ## Funcionalidades
@@ -91,3 +93,9 @@ O relatório `RelatorioHelpdesk.markdown(central, hoje)` passou a incluir uma se
 ## Documentação para manutenção
 
 O [guia de validação](docs/GUIA_DE_VALIDACAO.md) contém testes de regressão, pontos críticos e critérios para revisar a próxima alteração.
+
+## Código e roteiro de estudo
+
+Como testaria a diferença entre um chamado vencido e um chamado encerrado no prazo? O [guia de engenharia reversa](docs/ENGENHARIA_REVERSA.md) reúne o mapa dos módulos e uma pergunta técnica baseada no projeto.
+
+Mantido por [João Junior](https://github.com/juniordev830).
